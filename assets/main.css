@@ -1,0 +1,121 @@
+body {
+    margin: 0;
+}
+
+#header {
+    font-size: bold;
+    font-size: 2.5em;
+}
+
+#topBar {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+#linenumber {
+    font-size: 1.5em;
+    position: relative;
+    font-weight: bold;
+    text-align: center;
+}
+
+#linescript {
+    font-size: 1.5em;
+    position: relative;
+    text-align: center;
+    height: 2.3em;
+}
+
+.navButton {
+    font-size: 2.8em;
+    font-weight: bold;
+    position: absolute;
+    margin-top: -0.28em;
+}
+
+#prevButton {
+    margin-right: 15em;
+}
+
+#nextButton {
+    margin-left: 15em;
+}
+
+.valid {
+    color: black;
+}
+
+.invalid {
+    color: lightblue;
+}
+
+.header > h1 {
+    margin-top: 0;
+    margin-bottom: 0.3em;
+}
+
+#hellobutton {
+    font-size: 3em;
+}
+
+#flex {
+    flex: 1;
+    display: flex;
+    overflow: auto;
+}
+
+.unselectedSprite > img:hover {
+    background: lightgreen;
+}
+
+.unselectedSprite > .spritename {
+    height: 0;
+    position: relative;
+    top: 0.5em;
+    font-size: 1.3em;
+}
+
+.unselectedSprite > img {
+    height: 28em;
+}
+
+.selectedSprite > img {
+    background: green;
+}
+
+.selectedSprite > .spritename {
+    height: 0;
+    position: relative;
+    top: 0.5em;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.selectedSprite > img {
+    height: 28em;
+}
+
+.unselectedLine {
+    height: 2.3em;
+    font-size: 1.5em;
+}
+
+.unselectedLine:hover {
+    background: lightgreen;
+}
+
+.selectedLine {
+    height: 2.3em;
+    font-size: 1.5em;
+    background: green;
+}
+
+#copyHere {
+    height: 1.5em;
+    width: 7em;
+    font-size: 4em;
+}
+
+
+
+
