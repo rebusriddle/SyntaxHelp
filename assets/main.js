@@ -129,7 +129,16 @@ function parseLines(lines){
         let currLine = allLines[i].split(":");
         //if the length of currLine < 2, that means currLine does not follow the format NAME: DIALOGUE
         if(currLine.length < 2) {
-            continue;
+            //valid comment line
+            if(currLine[0].slice(0,2) == "//") {
+                console.log("Comment detected:" + currLine[0]);
+                lineArray[validLineIndex] = ["Comment", "NA", currLine[0]];
+                validLineIndex++;
+                continue;
+            }
+            else {
+                continue;
+            }
         }
 
         let identifier = currLine[0].split("/");
@@ -155,7 +164,13 @@ function parseLines(lines){
 function generateDialogueLines(charArray, lineArray) {
     let dialogueLines = document.getElementById("dialogueLines");
     for(let i = 0; i < lineArray.length; i++) {
-        if(lineArray[i][LINE_SPRITE] == ("NA")) {
+        if(lineArray[i][LINE_NAME] == "Comment") {
+            dialogueLines.innerHTML += `
+            <div id="dialogue_${i}" class="unselectedLine">
+                <b>LINE ${i}</b> | ${lineArray[i][LINE_DIALOGUE]}
+            </div><br>`;
+        }
+        else if(lineArray[i][LINE_SPRITE] == ("NA")) {
             dialogueLines.innerHTML += `
             <div id="dialogue_${i}" class="unselectedLine">
                 <b>LINE ${i}</b> | ${lineArray[i][LINE_NAME]}: ${lineArray[i][LINE_DIALOGUE]}
@@ -222,20 +237,30 @@ function generateFlexListeners(sprites, lineArray) {
 
     //if the last character to speak is the same as the current character to speak
     //then the 0 sprite is shown with the last emotion and SRC
-    if(currentLine != 0 && 
-        lineArray[currentLine-1][LINE_NAME] == lineArray[currentLine][LINE_NAME] &&
-        lineArray[currentLine-1][LINE_SPRITE] != "NA") {
+    if(currentLine != 0 && lineArray[currentLine][LINE_NAME] != "Comment") {
 
-        let validZeroSequence = true;
+        let validZeroSequence = false;
         //goes back to the most recent line that is not 0
-        let x = 1;
-        while(currentLine - x >= 0 && lineArray[currentLine-x][LINE_SPRITE] == "0") {
+        let x = 0;
+        while(currentLine - x >= 1) {
             x++;
-            //if 0 is the first thing in the sequence of names
-            if(lineArray[currentLine-x][LINE_NAME] != lineArray[currentLine][LINE_NAME]) {
-                validZeroSequence = false;
+            
+            //if it is a comment, continue
+            if(lineArray[currentLine-x][LINE_NAME] == "Comment") {
+                continue;
+            }
+            //if it is still 0, continue
+            else if(lineArray[currentLine-x][LINE_SPRITE] == "0") {
+                continue;
+            }
+            //same name and sprite, end
+            else if (lineArray[currentLine-x][LINE_SPRITE] != "0" && lineArray[currentLine-x][LINE_NAME] == lineArray[currentLine][LINE_NAME]) {
+                validZeroSequence = true;
                 break;
             }
+            else if(lineArray[currentLine-x][LINE_NAME] != lineArray[currentLine][LINE_NAME]) {
+                break;
+            }  
         }
         let lastSpriteId;
         let lastSpriteEmotion;
@@ -251,13 +276,14 @@ function generateFlexListeners(sprites, lineArray) {
                     break;
                 }
            }
-
+            lastSpriteId += ": ";
             sprites[0][SPRITE_EMOTION] = lastSpriteEmotion;
             sprites[0][SPRITE_SRC] = lastSpriteSrc;
         }
         else {
             lastSpriteEmotion = "Null";
             lastSpriteSrc = "https://cdn.discordapp.com/attachments/1054648049214959630/1054662730394636338/nospritefound.png";
+            lastSpriteId = "";
             sprites[0][SPRITE_EMOTION] = lastSpriteEmotion;
             sprites[0][SPRITE_SRC] = lastSpriteSrc;
         }
@@ -265,7 +291,7 @@ function generateFlexListeners(sprites, lineArray) {
         
         let spriteObject = document.getElementById(`nameandsprite_0`);
         spriteObject.innerHTML = `
-        <div class="spritename">0: ${lastSpriteEmotion}</div>
+        <div class="spritename">0: ${lastSpriteId}${lastSpriteEmotion}</div>
         <img src="${lastSpriteSrc}" alt="spriteimg_0">`
 
         spriteObject.addEventListener('click', () => {
@@ -294,7 +320,12 @@ function generateFlexListeners(sprites, lineArray) {
     } //end if statement for 0 sprite
     //otherwise, USE AT YOUR OWN RISK!
     else {
-        sprites[0][SPRITE_EMOTION] = "Null";
+        if(lineArray[currentLine][LINE_NAME] == "Comment") {
+            sprites[0][SPRITE_EMOTION] = "ThisIsAComment";
+        }
+        else {
+            sprites[0][SPRITE_EMOTION] = "Null";
+        }
         sprites[0][SPRITE_SRC] = 'https://cdn.discordapp.com/attachments/1054648049214959630/1054662730394636338/nospritefound.png';
         let nullObject = document.getElementById("nameandsprite_0");
         nullObject.innerHTML = `
@@ -356,7 +387,16 @@ function generateFlexListeners(sprites, lineArray) {
     } //end for loop of all sprites
 
     //Set first sprite to selected only IF there is no sprite selected
-    if(lineArray[currentLine][LINE_SPRITE] == "NA") {
+    if(lineArray[currentLine][LINE_NAME] == "Comment") {
+        let firstObject = document.getElementById(`nameandsprite_0`);
+        firstObject.classList.remove("unselectedSprite");
+        firstObject.classList.add("selectedSprite");
+        selectedSpriteIndex = 0;
+        lineArray[currentLine][LINE_SPRITE] = sprites[selectedSpriteIndex][SPRITE_ID];
+        generateTopLine(lineArray[currentLine]);
+        updateDialogueLine(lineArray, currentLine);
+    }
+    else if(lineArray[currentLine][LINE_SPRITE] == "NA") {
         let firstObject = document.getElementById(`nameandsprite_1`);
         firstObject.classList.remove("unselectedSprite");
         firstObject.classList.add("selectedSprite");
@@ -420,8 +460,15 @@ function generatePrevNextButtons(charArray, lineArray) {
  */
 function generateTopLine(currArray) {
     let topLine = document.getElementById("topLine");
+    
+    if(currArray[LINE_NAME] == ("Comment")) {
+        topLine.innerHTML = `
+            <div id="linenumber">Line ${currentLine}</div>
+            <div id="linescript">${currArray[LINE_DIALOGUE]}</div>
+        `
+    }
     //if there is no sprite currently set, there will be no / after the chara name
-    if(currArray[LINE_SPRITE] == ("NA")) {
+    else if(currArray[LINE_SPRITE] == ("NA")) {
         topLine.innerHTML = `
             <div id="linenumber">Line ${currentLine}</div>
             <div id="linescript">${currArray[LINE_NAME]}: ${currArray[LINE_DIALOGUE]}</div>
@@ -450,7 +497,11 @@ function generateTopLine(currArray) {
  */
 function updateDialogueLine(lineArray, currentLine) {
     let dialogueObject = document.getElementById(`dialogue_${currentLine}`);
-    if(lineArray[currentLine][LINE_SPRITE] == ("NA")) {
+    if(lineArray[currentLine][LINE_NAME] == "Comment") {
+        dialogueObject.innerHTML = 
+        `<b>LINE ${currentLine}</b> | ${lineArray[currentLine][LINE_DIALOGUE]}`;
+    }
+    else if(lineArray[currentLine][LINE_SPRITE] == ("NA")) {
         dialogueObject.innerHTML = 
         `<b>LINE ${currentLine}</b> | ${lineArray[currentLine][LINE_NAME]}: ${lineArray[currentLine][LINE_DIALOGUE]}`;
     }
@@ -536,8 +587,10 @@ function generateCopyListener(lineArray) {
     copyHere.addEventListener('click', () => {
         let copyString = "";
         for(let i = 0; i < lineArray.length; i++) {
-
-            if(lineArray[i][LINE_SPRITE] == "NA") {
+            if(lineArray[i][LINE_NAME] == "Comment") {
+                copyString += lineArray[i][LINE_DIALOGUE] + "\n";
+            }
+            else if(lineArray[i][LINE_SPRITE] == "NA") {
                 copyString += lineArray[i][LINE_NAME] + ":" +
                 lineArray[i][LINE_DIALOGUE] + "\n";
             }
