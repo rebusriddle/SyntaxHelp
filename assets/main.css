@@ -26,6 +26,14 @@ body {
     height: 2.3em;
 }
 
+#lineprotag {
+    font-size: 1.5em;
+    position: relative;
+    text-align: center;
+    height: 2.3em;
+    font-style: oblique;
+}
+
 .navButton {
     font-size: 2.8em;
     font-weight: bold;

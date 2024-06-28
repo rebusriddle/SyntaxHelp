@@ -4,10 +4,13 @@ window.addEventListener('DOMContentLoaded', init);
 var selectedSpriteIndex;
 var currentLine = 0;
 var characters = {};
+let protagArray = [];
+let charArray = [];
 
 const SPRITE_ID = 0;
 const SPRITE_EMOTION = 1;
 const SPRITE_SRC = 2;
+const protag = "Hiroaki";
 
 const LINE_NAME = 0;
 const LINE_SPRITE = 1;
@@ -32,7 +35,7 @@ function generateDataInputListeners() {
         }
 
         //parses content of scriptInput into lineArray
-        let charArray = parseAssetData(lines);
+        charArray = parseAssetData(lines);
 
         let assetSubmit = document.getElementById('assetSubmit');
         assetSubmit.value = "SUCCESS!";
@@ -42,18 +45,19 @@ function generateDataInputListeners() {
 }
 
 function parseAssetData(lines) {
-    let charArray = [];
+    let cArray = [];
     let currChara = -1;
+    let charaName = 0;
     //splits each line into array
     let allLines = lines.split("\n");
     for(let i = 0; i < allLines.length; i++) {
         if(allLines[i].slice(0,2) == "**") {
             currChara++;
             //gets character name and saves it
-            let charaName = allLines[i].slice(2, allLines[i].length);
+            charaName = allLines[i].slice(2, allLines[i].length);
             characters[charaName] = currChara;
             let array = [];
-            charArray.push(array);
+            cArray.push(array);
             continue;
         }
 
@@ -63,10 +67,26 @@ function parseAssetData(lines) {
             continue;
         }
 
-        charArray[currChara].push([currLine[SPRITE_ID], currLine[SPRITE_EMOTION], currLine[SPRITE_SRC]]);
+        if(currLine[SPRITE_ID] == "0") {
+            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png";
+        }
+        else if(charaName == "Fan Fan") {
+            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + "Fan_Fan" + "/" + currLine[SPRITE_ID] + ".png";
+            console.log(currLine[SPRITE_SRC]);
+        }
+        else if(charaName.includes('(') && charaName.includes(')')) {
+            let removedAlias = charaName.substring(charaName.indexOf('(') + 1, charaName.indexOf(')'))
+            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + removedAlias + "/" + currLine[SPRITE_ID] + ".png";
+        }
+        
+        else {
+            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + charaName + "/" + currLine[SPRITE_ID] + ".png";
+        }
+
+        cArray[currChara].push([currLine[SPRITE_ID], currLine[SPRITE_EMOTION], currLine[SPRITE_SRC]]);
     } //end for loop
 
-    return charArray;
+    return cArray;
 }
 
 /**
@@ -92,9 +112,9 @@ function generateScriptInputListeners(charArray) {
         generateDialogueLines(charArray, lineArray);
 
         let sprites = loadSprite(charArray, lineArray[0][LINE_NAME]);
-        
+
         //generates the sprite lineup
-        generateFlexHTML(sprites);
+        generateFlexHTML(sprites, lineArray);
 
         //generates functionality for the sprite lineup
         generateFlexListeners(sprites, lineArray);
@@ -119,26 +139,34 @@ function generateScriptInputListeners(charArray) {
  */
 function parseLines(lines){
     let lineArray = [];
-
+    let protagWindowActive = false;
     //splits each line into array
     let allLines = lines.split("\n");
 
     //loop through every line of dialogue
     var validLineIndex = 0;
     for(let i = 0; i < allLines.length; i++) {
+        if(allLines[i].slice(0,2) == "//") {
+            //console.log("Comment detected:" + currLine[0]);
+            lineArray[validLineIndex] = ["Comment", "NA", allLines[i]];
+            protagArray[validLineIndex] = [protagWindowActive, false];
+            validLineIndex++;
+            continue;
+        }
         let currLine = allLines[i].split(":");
         //if the length of currLine < 2, that means currLine does not follow the format NAME: DIALOGUE
         if(currLine.length < 2) {
-            //valid comment line
-            if(currLine[0].slice(0,2) == "//") {
-                console.log("Comment detected:" + currLine[0]);
-                lineArray[validLineIndex] = ["Comment", "NA", currLine[0]];
-                validLineIndex++;
-                continue;
-            }
-            else {
-                continue;
-            }
+            continue;
+        }
+
+        //console.log(currLine[1] + " ----- " + currLine[1].slice(1,2));
+        if(currLine[1].includes("^")) {
+            protagWindowActive = !protagWindowActive;
+            //protagWindowActive, protagWindowTrigger
+            protagArray[validLineIndex] = [protagWindowActive, true];
+        }
+        else {
+            protagArray[validLineIndex] = [protagWindowActive, false];
         }
 
         let identifier = currLine[0].split("/");
@@ -150,8 +178,16 @@ function parseLines(lines){
             lineArray[validLineIndex] = [identifier[LINE_NAME], identifier[LINE_SPRITE], currLine[1]];
         }
 
+        //warning if activate trigger does not happen on protag
+        if(protagArray[validLineIndex][0] && protagArray[validLineIndex][1] && lineArray[validLineIndex][0] != protag) {
+            window.alert("Line " + validLineIndex + " attempts to activate protag window on non-protag line.");
+        }
+
+
         //validLineIndex: only lines that successfully pass the currLine < 2 check are numbered continuously
         validLineIndex++;
+
+        
     }
 
     return lineArray;
@@ -214,8 +250,21 @@ function generateDialogueListeners(charArray, lineArray) {
  * @param {*} sprites Array of sprites
  * @returns The HTML used to generate the "line of sprites" part of the webpage
  */
-function generateFlexHTML(sprites) {
+function generateFlexHTML(sprites, lineArray) {
     let flexHTML = ``;
+
+    //protag window inactive detected
+    if(lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine][0] == false) {
+        flexHTML += `
+        <div id="nameandsprite_0" class="unselectedSprite">
+            <div class="spritename">${sprites[0][SPRITE_ID]}: ${sprites[0][SPRITE_EMOTION]}</div>
+            <img src="${sprites[0][SPRITE_SRC]}" alt="spriteimg_${0}">
+        </div>`;
+        let flex = document.getElementById("flex");
+        flex.innerHTML = flexHTML;
+        return;
+    }
+    
     for(let i = 0; i < sprites.length; i++) {
         flexHTML += `
         <div id="nameandsprite_${i}" class="unselectedSprite">
@@ -234,10 +283,8 @@ function generateFlexHTML(sprites) {
  * @param {*} lineArray 
  */
 function generateFlexListeners(sprites, lineArray) {
-
-    //if the last character to speak is the same as the current character to speak
-    //then the 0 sprite is shown with the last emotion and SRC
-    if(currentLine != 0 && lineArray[currentLine][LINE_NAME] != "Comment") {
+    //if current line has lines before it, is not a comment, and is not a deactivated protag window
+    if(currentLine != 0 && lineArray[currentLine][LINE_NAME] != "Comment" && !(lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine][0] == false)) {
 
         let validZeroSequence = false;
         //goes back to the most recent line that is not 0
@@ -245,12 +292,24 @@ function generateFlexListeners(sprites, lineArray) {
         while(currentLine - x >= 1) {
             x++;
             
+            //current is protag and stumbles upon disabled window
+            if(lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine-x][0] == false) {
+                break;
+            }
             //if it is a comment, continue
-            if(lineArray[currentLine-x][LINE_NAME] == "Comment") {
+            else if(lineArray[currentLine-x][LINE_NAME] == "Comment") {
                 continue;
             }
-            //if it is still 0, continue
-            else if(lineArray[currentLine-x][LINE_SPRITE] == "0") {
+            //protag can't affect nonprotag
+            else if(lineArray[currentLine-x][LINE_NAME] == protag && lineArray[currentLine][LINE_NAME] != protag) {
+                continue;
+            }
+            //nonprotag can't affect protag
+            else if(lineArray[currentLine-x][LINE_NAME] != protag && lineArray[currentLine][LINE_NAME] == protag) {
+                continue;
+            }
+            //if it is still the same character 0, continue
+            else if(lineArray[currentLine-x][LINE_SPRITE] == "0" && lineArray[currentLine-x][LINE_NAME] == lineArray[currentLine][LINE_NAME]) {
                 continue;
             }
             //same name and sprite, end
@@ -258,6 +317,7 @@ function generateFlexListeners(sprites, lineArray) {
                 validZeroSequence = true;
                 break;
             }
+            //not same name and sprite
             else if(lineArray[currentLine-x][LINE_NAME] != lineArray[currentLine][LINE_NAME]) {
                 break;
             }  
@@ -282,7 +342,7 @@ function generateFlexListeners(sprites, lineArray) {
         }
         else {
             lastSpriteEmotion = "Null";
-            lastSpriteSrc = "https://cdn.discordapp.com/attachments/1054648049214959630/1054662730394636338/nospritefound.png";
+            lastSpriteSrc = "https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png";
             lastSpriteId = "";
             sprites[0][SPRITE_EMOTION] = lastSpriteEmotion;
             sprites[0][SPRITE_SRC] = lastSpriteSrc;
@@ -311,7 +371,7 @@ function generateFlexListeners(sprites, lineArray) {
 
                 //set the sprite in the lineArray
                 lineArray[currentLine][LINE_SPRITE] = 0;
-                generateTopLine(lineArray[currentLine]);
+                generateTopLine(lineArray[currentLine], lineArray);
 
                 //update line of dialogue (WHEN A SPRITE IS SELECTED)
                 updateDialogueLine(lineArray, currentLine);
@@ -323,10 +383,13 @@ function generateFlexListeners(sprites, lineArray) {
         if(lineArray[currentLine][LINE_NAME] == "Comment") {
             sprites[0][SPRITE_EMOTION] = "ThisIsAComment";
         }
+        else if(lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine][0] == false) {
+            sprites[0][SPRITE_EMOTION] = "ProtagInactive";
+        }
         else {
             sprites[0][SPRITE_EMOTION] = "Null";
         }
-        sprites[0][SPRITE_SRC] = 'https://cdn.discordapp.com/attachments/1054648049214959630/1054662730394636338/nospritefound.png';
+        sprites[0][SPRITE_SRC] = 'https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png';
         let nullObject = document.getElementById("nameandsprite_0");
         nullObject.innerHTML = `
         <div class="spritename">0: ${sprites[0][SPRITE_EMOTION]}</div>
@@ -348,7 +411,7 @@ function generateFlexListeners(sprites, lineArray) {
 
                 //set the sprite in the lineArray
                 lineArray[currentLine][LINE_SPRITE] = 0;
-                generateTopLine(lineArray[currentLine]);
+                generateTopLine(lineArray[currentLine], lineArray);
 
                 //update line of dialogue (WHEN A SPRITE IS SELECTED)
                 updateDialogueLine(lineArray, currentLine);
@@ -356,53 +419,56 @@ function generateFlexListeners(sprites, lineArray) {
         })
     }
 
-
+    if(!(lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine][0] == false)) {
     //Goes through every sprite except 0 and adds eventListener to them
-    for(let i = 1; i < sprites.length; i++) {
-        let spriteObject = document.getElementById(`nameandsprite_${i}`);
+        for(let i = 1; i < sprites.length; i++) {
+            let spriteObject = document.getElementById(`nameandsprite_${i}`);
 
-        spriteObject.addEventListener('click', () => {
-            //only one sprite can be selected
-            if(spriteObject.classList.contains("selectedSprite")) { //selected
-                return;
-            } else { //unselected
-                //current selected sprite is unselected
-                let selectedObject = document.getElementById(`nameandsprite_${selectedSpriteIndex}`);
-                selectedObject.classList.add("unselectedSprite");
-                selectedObject.classList.remove("selectedSprite");
+            spriteObject.addEventListener('click', () => {
+                //only one sprite can be selected
+                if(spriteObject.classList.contains("selectedSprite")) { //selected
+                    return;
+                } else { //unselected
+                    //current selected sprite is unselected
+                    let selectedObject = document.getElementById(`nameandsprite_${selectedSpriteIndex}`);
+                    selectedObject.classList.add("unselectedSprite");
+                    selectedObject.classList.remove("selectedSprite");
 
-                //the sprite you clicked on is selected
-                spriteObject.classList.remove("unselectedSprite");
-                spriteObject.classList.add("selectedSprite");
-                selectedSpriteIndex = i;
+                    //the sprite you clicked on is selected
+                    spriteObject.classList.remove("unselectedSprite");
+                    spriteObject.classList.add("selectedSprite");
+                    selectedSpriteIndex = i;
 
-                //set the sprite in the lineArray
-                lineArray[currentLine][LINE_SPRITE] = sprites[selectedSpriteIndex][SPRITE_ID];
-                generateTopLine(lineArray[currentLine]);
+                    //set the sprite in the lineArray
+                    lineArray[currentLine][LINE_SPRITE] = sprites[selectedSpriteIndex][SPRITE_ID];
+                    generateTopLine(lineArray[currentLine], lineArray);
 
-                //update line of dialogue (WHEN A SPRITE IS SELECTED)
-                updateDialogueLine(lineArray, currentLine);
-            }
-        }) //end add eventListener
-    } //end for loop of all sprites
+                    //update line of dialogue (WHEN A SPRITE IS SELECTED)
+                    updateDialogueLine(lineArray, currentLine);
+                }
+            }) //end add eventListener
+        } //end for loop of all sprites
+    } //end if protag window inactive
 
     //Set first sprite to selected only IF there is no sprite selected
-    if(lineArray[currentLine][LINE_NAME] == "Comment") {
+    if(lineArray[currentLine][LINE_NAME] == "Comment" || lineArray[currentLine][LINE_NAME] == "NA" ||
+        (lineArray[currentLine][LINE_NAME] == protag && protagArray[currentLine][0] == false)) {
+
         let firstObject = document.getElementById(`nameandsprite_0`);
         firstObject.classList.remove("unselectedSprite");
         firstObject.classList.add("selectedSprite");
         selectedSpriteIndex = 0;
         lineArray[currentLine][LINE_SPRITE] = sprites[selectedSpriteIndex][SPRITE_ID];
-        generateTopLine(lineArray[currentLine]);
+        generateTopLine(lineArray[currentLine], lineArray);
         updateDialogueLine(lineArray, currentLine);
     }
     else if(lineArray[currentLine][LINE_SPRITE] == "NA") {
-        let firstObject = document.getElementById(`nameandsprite_1`);
+        let firstObject = document.getElementById(`nameandsprite_0`);
         firstObject.classList.remove("unselectedSprite");
         firstObject.classList.add("selectedSprite");
-        selectedSpriteIndex = 1;
+        selectedSpriteIndex = 0;
         lineArray[currentLine][LINE_SPRITE] = sprites[selectedSpriteIndex][SPRITE_ID];
-        generateTopLine(lineArray[currentLine]);
+        generateTopLine(lineArray[currentLine], lineArray);
         updateDialogueLine(lineArray, currentLine);
     }
     else {
@@ -414,7 +480,7 @@ function generateFlexListeners(sprites, lineArray) {
                 selectedObject.classList.remove("unselectedSprite");
                 selectedObject.classList.add("selectedSprite");
                 selectedSpriteIndex = i;
-                generateTopLine(lineArray[currentLine]);
+                generateTopLine(lineArray[currentLine], lineArray);
                 updateDialogueLine(lineArray, currentLine);
                 break;
             }
@@ -458,30 +524,137 @@ function generatePrevNextButtons(charArray, lineArray) {
  * Generates the top line of the syntaxer; called every time a new sprite is selected
  * @param {*} sprites 
  */
-function generateTopLine(currArray) {
+function generateTopLine(currArray, lineArray) {
     let topLine = document.getElementById("topLine");
-    
+    let protagWindowString;
+    if(protagArray[currentLine][0]) {
+        protagWindowString = "";
+    }
+    else {
+        protagWindowString = "INACTIVE";
+    }
+
     if(currArray[LINE_NAME] == ("Comment")) {
         topLine.innerHTML = `
             <div id="linenumber">Line ${currentLine}</div>
-            <div id="linescript">${currArray[LINE_DIALOGUE]}</div>
+            <div id="linescript" contenteditable="true">${currArray[LINE_DIALOGUE]}</div>
+            <div id="lineprotag">Protag Window: ${protagWindowString}</div>
         `
     }
     //if there is no sprite currently set, there will be no / after the chara name
     else if(currArray[LINE_SPRITE] == ("NA")) {
         topLine.innerHTML = `
             <div id="linenumber">Line ${currentLine}</div>
-            <div id="linescript">${currArray[LINE_NAME]}: ${currArray[LINE_DIALOGUE]}</div>
+            <div id="linescript" contenteditable="true">${currArray[LINE_NAME]}: ${currArray[LINE_DIALOGUE]}</div>
+            <div id="lineprotag">Protag Window: ${protagWindowString}</div>
         `
     }
     //if there is a sprite set
     else {
         topLine.innerHTML = `
             <div id="linenumber">Line ${currentLine}</div>
-            <div id="linescript">${currArray[LINE_NAME]}/${currArray[LINE_SPRITE]}: ${currArray[2]}</div>
+            <div id="linescript" contenteditable="true">${currArray[LINE_NAME]}/${currArray[LINE_SPRITE]}: ${currArray[LINE_DIALOGUE]}</div>
+            <div id="lineprotag">Protag Window: ${protagWindowString}</div>
         `
     }
-    
+    let lineprotag = document.getElementById("lineprotag");
+       
+    if(protagArray[currentLine][0]) {
+        let x = 0;
+        while(currentLine - x >= 0) {
+            
+            //if the window is disabled, there's nothing
+            if(!protagArray[currentLine-x][0]) {
+                break;
+            }
+            //if it is a comment, continue. if it's not the protag, continue
+            else if(lineArray[currentLine-x][LINE_NAME] == "Comment" || lineArray[currentLine-x][LINE_NAME] != protag) {
+                x++;
+                continue;
+            }
+            //if it is the protag but 0, continue
+            else if(lineArray[currentLine-x][LINE_NAME] == protag && lineArray[currentLine-x][LINE_SPRITE] == "0") {
+                x++;
+                continue;
+            }
+            //break if proper protag zero was found
+            else if(lineArray[currentLine-x][LINE_NAME] == protag && lineArray[currentLine-x][LINE_SPRITE] != "0") {
+                lineprotag.innerText += " " + protag + "/" + lineArray[currentLine-x][LINE_SPRITE];
+                break;
+            }
+        }
+    }
+
+
+    let linescript = document.getElementById("linescript");
+
+    linescript.addEventListener('focus', function() {
+        //if the length of currLine < 2, that means currLine does not follow the format NAME: DIALOGUE
+        if(lineArray[currentLine][LINE_NAME] == "Comment") {
+            linescript.innerText = lineArray[currentLine][LINE_DIALOGUE].slice(2, lineArray[currentLine][LINE_DIALOGUE].length);
+        }
+        else {
+            linescript.innerText = lineArray[currentLine][LINE_DIALOGUE];
+        }
+    })
+
+    linescript.addEventListener('blur', function() {
+        
+        if(lineArray[currentLine][LINE_NAME] == "Comment") {
+            lineArray[currentLine] = ["Comment", "NA", "//" + linescript.innerText];
+        }
+        else {
+            lineArray[currentLine] = [lineArray[currentLine][LINE_NAME], lineArray[currentLine][LINE_SPRITE], " " + linescript.innerText];
+        }
+
+        console.log("LINE " + currentLine + " ACTIVE: " + protagArray[currentLine][0] + " TRIGGER: " + protagArray[currentLine][1]);
+        //detect changes to window trigger
+        if(linescript.innerText.includes("^") && !protagArray[currentLine][1] 
+            && lineArray[currentLine][LINE_NAME] != "Comment") {
+                
+            console.log(currentLine + " changed nontrigger to trigger");
+            protagArray[currentLine] = [!protagArray[currentLine][0], true];
+            for(let i = currentLine + 1; i < protagArray.length; i++) {
+                protagArray[i][0] = !protagArray[i][0];
+                console.log("protag array " + i + " changed to " + protagArray[i][0]);
+            }
+            //warning if activate trigger does not happen on protag
+            if(protagArray[currentLine][0] && protagArray[currentLine][1] && lineArray[currentLine][0] != protag) {
+                window.alert("Line " + currentLine + " attempts to activate protag window on non-protag line.");
+            }
+            let spritesCopy = loadSprite(charArray, lineArray[currentLine][LINE_NAME]);
+            generateFlexHTML(spritesCopy, lineArray);
+            generateFlexListeners(spritesCopy, lineArray);
+        }
+        else if(!linescript.innerText.includes("^") && protagArray[currentLine][1]
+            && lineArray[currentLine][LINE_NAME] != "Comment") {
+
+            console.log(currentLine + " changed trigger to nontrigger");
+            protagArray[currentLine] = [!protagArray[currentLine][0], false];
+            for(let i = currentLine + 1; i < protagArray.length; i++) {
+                protagArray[i][0] = !protagArray[i][0];
+                console.log("protag array " + i + " changed to " + protagArray[i][0]);
+            }
+            let spritesCopy = loadSprite(charArray, lineArray[currentLine][LINE_NAME]);
+            generateFlexHTML(spritesCopy, lineArray);
+            generateFlexListeners(spritesCopy, lineArray);
+        }
+
+        updateDialogueLine(lineArray, currentLine); 
+
+        if(lineArray[currentLine][LINE_NAME] == ("Comment")) {
+            linescript.innerText = lineArray[currentLine][LINE_DIALOGUE];
+        }
+        //if there is no sprite currently set, there will be no / after the chara name
+        else if(lineArray[currentLine][LINE_SPRITE] == ("NA")) {
+            linescript.innerText = lineArray[currentLine][LINE_NAME] + ":" + lineArray[currentLine][LINE_DIALOGUE];
+        }
+        //if there is a sprite set
+        else {
+            linescript.innerText = lineArray[currentLine][LINE_NAME] + "/" + lineArray[currentLine][LINE_SPRITE] + ":" + lineArray[currentLine][LINE_DIALOGUE];
+        }
+    })
+
     let header = document.getElementById("header");
     header.style.display = "none";
     let assetForm = document.getElementById("assetForm");
@@ -535,7 +708,7 @@ function navigateLine(line, charArray, lineArray) {
     let sprites = loadSprite(charArray, lineArray[line][LINE_NAME]);
 
     //update flexHTML
-    generateFlexHTML(sprites);
+    generateFlexHTML(sprites, lineArray);
 
     //update flex listeners
     generateFlexListeners(sprites, lineArray);
@@ -569,8 +742,8 @@ function loadSprite(charArray, name) {
 
     if(!(characters.hasOwnProperty(name))) {
         let sprites = [];
-        sprites.push(["0","Null","https://cdn.discordapp.com/attachments/1054648049214959630/1054662730394636338/nospritefound.png"]);
-        sprites.push(["404","DoNotSelectThis","https://cdn.discordapp.com/attachments/1054648049214959630/1054952850431688805/charanotfound.png"]);
+        sprites.push(["0","Null","https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png"]);
+        sprites.push(["404","DoNotSelectThis","https://file.garden/ZeU_SKuE3x85X5iD/404Sprite.png"]);
         return sprites;
     }
 
@@ -588,7 +761,12 @@ function generateCopyListener(lineArray) {
         let copyString = "";
         for(let i = 0; i < lineArray.length; i++) {
             if(lineArray[i][LINE_NAME] == "Comment") {
-                copyString += lineArray[i][LINE_DIALOGUE] + "\n";
+                if(lineArray[i][LINE_DIALOGUE].includes("Load Scene") || 
+                lineArray[i][LINE_DIALOGUE].includes("SELECT") || lineArray[i][LINE_DIALOGUE].includes("Select")) {
+                    lineArray[i][LINE_DIALOGUE] = "\n" + lineArray[i][LINE_DIALOGUE] + "\n";
+                }
+                copyString += "\n" + lineArray[i][LINE_DIALOGUE] + "\n\n";
+                
             }
             else if(lineArray[i][LINE_SPRITE] == "NA") {
                 copyString += lineArray[i][LINE_NAME] + ":" +
