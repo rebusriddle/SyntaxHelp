@@ -11,7 +11,6 @@ const SPRITE_ID = 0;
 const SPRITE_EMOTION = 1;
 const SPRITE_SRC = 2;
 let protag;
-let format;
 let filegarden;
 
 const LINE_NAME = 0;
@@ -53,9 +52,8 @@ function parseAssetData(lines) {
     //splits each line into array
     let allLines = lines.split("\n");
     protag = allLines[0];
-    format = allLines[1];
-    filegarden = allLines[2];
-    for(let i = 3; i < allLines.length; i++) {
+    filegarden = allLines[1];
+    for(let i = 2; i < allLines.length; i++) {
         
         if(allLines[i].slice(0,2) == "**") {
             currChara++;
@@ -395,7 +393,7 @@ function generateFlexListeners(sprites, lineArray) {
         else {
             sprites[0][SPRITE_EMOTION] = "Null";
         }
-        sprites[0][SPRITE_SRC] = 'https://file.garden/" + filegarden + "/NullSprite.png';
+        sprites[0][SPRITE_SRC] = "https://file.garden/" + filegarden + "/NullSprite.png";
         let nullObject = document.getElementById("nameandsprite_0");
         nullObject.innerHTML = `
         <div class="spritename">0: ${sprites[0][SPRITE_EMOTION]}</div>
