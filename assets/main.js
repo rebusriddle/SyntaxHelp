@@ -49,6 +49,7 @@ function parseAssetData(lines) {
     let cArray = [];
     let currChara = -1;
     let charaName = 0;
+    let assetDataInput = "";
     //splits each line into array
     let allLines = lines.split("\n");
     protag = allLines[0];
@@ -62,6 +63,7 @@ function parseAssetData(lines) {
             characters[charaName] = currChara;
             let array = [];
             cArray.push(array);
+            assetDataInput += "**" + charaName + "\n";
             continue;
         }
 
@@ -76,7 +78,7 @@ function parseAssetData(lines) {
         }
         else if(charaName == "Fan Fan") {
             currLine[SPRITE_SRC] = "https://file.garden/" + filegarden + "/" + "Fan_Fan" + "/" + currLine[SPRITE_ID] + ".png";
-            console.log(currLine[SPRITE_SRC]);
+            //console.log(currLine[SPRITE_SRC]);
         }
         else if(charaName.includes('(') && charaName.includes(')')) {
             let removedAlias = charaName.substring(charaName.indexOf('(') + 1, charaName.indexOf(')'))
@@ -88,7 +90,11 @@ function parseAssetData(lines) {
         }
 
         cArray[currChara].push([currLine[SPRITE_ID], currLine[SPRITE_EMOTION], currLine[SPRITE_SRC]]);
+        assetDataInput += currLine[SPRITE_ID] + "," + currLine[SPRITE_EMOTION] + ",\n";
+
     } //end for loop
+
+    console.log(assetDataInput);
 
     return cArray;
 }
@@ -611,16 +617,16 @@ function generateTopLine(currArray, lineArray) {
             lineArray[currentLine] = [lineArray[currentLine][LINE_NAME], lineArray[currentLine][LINE_SPRITE], " " + linescript.innerText];
         }
 
-        console.log("LINE " + currentLine + " ACTIVE: " + protagArray[currentLine][0] + " TRIGGER: " + protagArray[currentLine][1]);
+        //console.log("LINE " + currentLine + " ACTIVE: " + protagArray[currentLine][0] + " TRIGGER: " + protagArray[currentLine][1]);
         //detect changes to window trigger
         if(linescript.innerText.includes("^") && !protagArray[currentLine][1] 
             && lineArray[currentLine][LINE_NAME] != "Comment") {
                 
-            console.log(currentLine + " changed nontrigger to trigger");
+            //console.log(currentLine + " changed nontrigger to trigger");
             protagArray[currentLine] = [!protagArray[currentLine][0], true];
             for(let i = currentLine + 1; i < protagArray.length; i++) {
                 protagArray[i][0] = !protagArray[i][0];
-                console.log("protag array " + i + " changed to " + protagArray[i][0]);
+                //console.log("protag array " + i + " changed to " + protagArray[i][0]);
             }
             //warning if activate trigger does not happen on protag
             if(protagArray[currentLine][0] && protagArray[currentLine][1] && lineArray[currentLine][0] != protag) {
@@ -633,11 +639,11 @@ function generateTopLine(currArray, lineArray) {
         else if(!linescript.innerText.includes("^") && protagArray[currentLine][1]
             && lineArray[currentLine][LINE_NAME] != "Comment") {
 
-            console.log(currentLine + " changed trigger to nontrigger");
+            //console.log(currentLine + " changed trigger to nontrigger");
             protagArray[currentLine] = [!protagArray[currentLine][0], false];
             for(let i = currentLine + 1; i < protagArray.length; i++) {
                 protagArray[i][0] = !protagArray[i][0];
-                console.log("protag array " + i + " changed to " + protagArray[i][0]);
+                //console.log("protag array " + i + " changed to " + protagArray[i][0]);
             }
             let spritesCopy = loadSprite(charArray, lineArray[currentLine][LINE_NAME]);
             generateFlexHTML(spritesCopy, lineArray);
