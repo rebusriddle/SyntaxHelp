@@ -10,7 +10,9 @@ let charArray = [];
 const SPRITE_ID = 0;
 const SPRITE_EMOTION = 1;
 const SPRITE_SRC = 2;
-const protag = "Hiroaki";
+let protag;
+let format;
+let filegarden;
 
 const LINE_NAME = 0;
 const LINE_SPRITE = 1;
@@ -50,7 +52,11 @@ function parseAssetData(lines) {
     let charaName = 0;
     //splits each line into array
     let allLines = lines.split("\n");
-    for(let i = 0; i < allLines.length; i++) {
+    protag = allLines[0];
+    format = allLines[1];
+    filegarden = allLines[2];
+    for(let i = 3; i < allLines.length; i++) {
+        
         if(allLines[i].slice(0,2) == "**") {
             currChara++;
             //gets character name and saves it
@@ -68,19 +74,19 @@ function parseAssetData(lines) {
         }
 
         if(currLine[SPRITE_ID] == "0") {
-            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png";
+            currLine[SPRITE_SRC] = "https://file.garden/" + filegarden + "/NullSprite.png";
         }
         else if(charaName == "Fan Fan") {
-            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + "Fan_Fan" + "/" + currLine[SPRITE_ID] + ".png";
+            currLine[SPRITE_SRC] = "https://file.garden/" + filegarden + "/" + "Fan_Fan" + "/" + currLine[SPRITE_ID] + ".png";
             console.log(currLine[SPRITE_SRC]);
         }
         else if(charaName.includes('(') && charaName.includes(')')) {
             let removedAlias = charaName.substring(charaName.indexOf('(') + 1, charaName.indexOf(')'))
-            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + removedAlias + "/" + currLine[SPRITE_ID] + ".png";
+            currLine[SPRITE_SRC] = "https://file.garden/" + filegarden + "/" + removedAlias + "/" + currLine[SPRITE_ID] + ".png";
         }
         
         else {
-            currLine[SPRITE_SRC] = "https://file.garden/ZeU_SKuE3x85X5iD/" + charaName + "/" + currLine[SPRITE_ID] + ".png";
+            currLine[SPRITE_SRC] = "https://file.garden/" + filegarden + "/" + charaName + "/" + currLine[SPRITE_ID] + ".png";
         }
 
         cArray[currChara].push([currLine[SPRITE_ID], currLine[SPRITE_EMOTION], currLine[SPRITE_SRC]]);
@@ -342,7 +348,7 @@ function generateFlexListeners(sprites, lineArray) {
         }
         else {
             lastSpriteEmotion = "Null";
-            lastSpriteSrc = "https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png";
+            lastSpriteSrc = "https://file.garden/" + filegarden + "/NullSprite.png";
             lastSpriteId = "";
             sprites[0][SPRITE_EMOTION] = lastSpriteEmotion;
             sprites[0][SPRITE_SRC] = lastSpriteSrc;
@@ -389,7 +395,7 @@ function generateFlexListeners(sprites, lineArray) {
         else {
             sprites[0][SPRITE_EMOTION] = "Null";
         }
-        sprites[0][SPRITE_SRC] = 'https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png';
+        sprites[0][SPRITE_SRC] = 'https://file.garden/" + filegarden + "/NullSprite.png';
         let nullObject = document.getElementById("nameandsprite_0");
         nullObject.innerHTML = `
         <div class="spritename">0: ${sprites[0][SPRITE_EMOTION]}</div>
@@ -742,8 +748,8 @@ function loadSprite(charArray, name) {
 
     if(!(characters.hasOwnProperty(name))) {
         let sprites = [];
-        sprites.push(["0","Null","https://file.garden/ZeU_SKuE3x85X5iD/NullSprite.png"]);
-        sprites.push(["404","DoNotSelectThis","https://file.garden/ZeU_SKuE3x85X5iD/404Sprite.png"]);
+        sprites.push(["0","Null","https://file.garden/" + filegarden + "/NullSprite.png"]);
+        sprites.push(["404","DoNotSelectThis","https://file.garden/" + filegarden + "/404Sprite.png"]);
         return sprites;
     }
 
