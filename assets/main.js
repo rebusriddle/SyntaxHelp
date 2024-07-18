@@ -672,6 +672,8 @@ function generateTopLine(currArray, lineArray) {
         }
     })
 
+    let body = document.querySelector('body');
+    body.style.height = "100%";
     let header = document.getElementById("header-container");
     header.style.display = "none";
     let assetForm = document.getElementById("assetForm");
