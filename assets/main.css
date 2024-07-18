@@ -1,15 +1,66 @@
 body {
     margin: 0;
+    background-color: #e0e0e0; /* refined gray */
+    font-family: Arial, Helvetica, sans-serif;
+    color: #000; /* black text */
 }
 
 #header {
-    font-size: bold;
-    font-size: 2.5em;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    font-weight: 1000;
+    font-size: 4em;
+    color: #2a2ad8; /* black text */
+    margin: 20px 0;
+    text-align: center;
+    margin-left: 10px; /* Margin between image and header text */
+}
+
+#header-container {
+    display: flex; /* Use flexbox for layout */
+    align-items: center; /* Center items vertically */
+    justify-content: center;
+
+}
+
+#logo {
+    width: 60px; /* Example width of the logo */
+    height: auto; /* Maintain aspect ratio */
+}
+
+form {
+    background-color: #fff;
+    padding: 20px;
+    border: 1px solid #000; /* black border */
+    border-radius: 5px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Box shadow */
+    text-align: center;
+    width: 50%;
+}
+
+textarea {
+    margin: 10px;
+    width: 70%;
+    padding: 10px;
+    border: 1px solid #000; /* black border */
+    border-radius: 5px;
+    resize: vertical;
+}
+
+input[type="submit"] {
+    background-color: #00f; /* light blue */
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    margin-top: 10px;
 }
 
 #topBar {
     display: flex;
     justify-content: space-evenly;
+    padding: 0.5em;
 }
 
 #linenumber {
@@ -24,13 +75,19 @@ body {
     position: relative;
     text-align: center;
     height: 2.3em;
+    padding: 0.25em;
+    margin: 0.7em;
+    border: 1px solid #000; /* black border */
+    border-radius: 5px;
+    background-color: white;
+    
 }
 
 #lineprotag {
     font-size: 1.5em;
     position: relative;
     text-align: center;
-    height: 2.3em;
+    height: 1.6em;
     font-style: oblique;
 }
 
@@ -51,10 +108,16 @@ body {
 
 .valid {
     color: black;
+    cursor: pointer;
+}
+
+.valid:hover {
+    color: black;
+    cursor: pointer;
 }
 
 .invalid {
-    color: lightblue;
+    color: lightskyblue;
 }
 
 .header > h1 {
@@ -70,10 +133,15 @@ body {
     flex: 1;
     display: flex;
     overflow: auto;
+    background-color: #fff;
+    border: 1px solid #000; /* black border */
+    border-radius: 5px;
+    margin-left: 1em;
+    margin-right: 1em;
 }
 
 .unselectedSprite > img:hover {
-    background: lightgreen;
+    background: lightcyan;
 }
 
 .unselectedSprite > .spritename {
@@ -81,14 +149,16 @@ body {
     position: relative;
     top: 0.5em;
     font-size: 1.3em;
+    margin-left: 4px;
 }
 
 .unselectedSprite > img {
     height: 28em;
+    cursor: pointer;
 }
 
 .selectedSprite > img {
-    background: green;
+    background: lightskyblue;
 }
 
 .selectedSprite > .spritename {
@@ -97,31 +167,51 @@ body {
     top: 0.5em;
     font-size: 1.3em;
     font-weight: bold;
+    margin-left: 4px;
 }
 
 .selectedSprite > img {
     height: 28em;
 }
 
+#dialogueLines {
+    
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
 .unselectedLine {
+    background-color: whitesmoke;
     height: 2.3em;
     font-size: 1.5em;
+    cursor: pointer;
+    border: 1px solid #000; /* black border */
+    padding: 0.5em;
 }
 
 .unselectedLine:hover {
-    background: lightgreen;
+    background: lightcyan;
 }
 
 .selectedLine {
     height: 2.3em;
     font-size: 1.5em;
-    background: green;
+    background: lightskyblue;
+    border: 1px solid #000; /* black border */
+    padding: 0.5em;
 }
 
 #copyHere {
     height: 1.5em;
     width: 7em;
     font-size: 4em;
+    background-color: #00f; /* light blue */
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transform: translateX(100%);
 }
 
 

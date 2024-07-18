@@ -8,11 +8,17 @@
     
     <link rel="stylesheet" href="./assets/main.css" />
     <script src="./assets/main.js" type="module"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,opsz,wght@0,6..12,200..1000;1,6..12,200..1000&display=swap" rel="stylesheet">
     <style>
     </style>
 </head>
 <body>
-    <header id="header">SYNTAX HELP</header>
+    <div id="header-container">
+        <img id="logo" src="./assets/mathlogo.png" alt="Logo">
+        <header id="header">Syntaxer.</header>
+    </div>
     <div id="topBar">
         <div id="topLine">
         </div>
@@ -29,14 +35,14 @@
     <div id="copyButton"></div>
     <br>
     <form id="assetForm">
-        ASSET DATA INPUT - SUBMIT THIS FIRST!
+        Asset Data Input
         <br>
         <textarea id="assetInput" rows = "7" cols = "80"></textarea><br>
         <input type= "submit" value="Submit" id="assetSubmit"/>
     </form>
     <br>
     <form id="scriptForm">
-        SCRIPT INPUT
+        Script Input
         <br>
         <textarea id="scriptInput" rows = "7" cols = "80"></textarea><br>
         <input type= "submit" value="Submit" id="scriptSubmit"/>

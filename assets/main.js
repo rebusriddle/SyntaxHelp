@@ -1,3 +1,4 @@
+
 // Run the init() function when the page has loaded
 window.addEventListener('DOMContentLoaded', init);
 
@@ -21,7 +22,6 @@ const LINE_DIALOGUE = 2;
 function init() {
     generateDataInputListeners();
 }
-
 
 function generateDataInputListeners() {
     let form = document.getElementById("assetForm");
@@ -228,6 +228,7 @@ function generateDialogueLines(charArray, lineArray) {
                 <b>LINE ${i}</b> | ${lineArray[i][LINE_NAME]}/${lineArray[i][LINE_SPRITE]}: ${lineArray[i][LINE_DIALOGUE]}
             </div><br>`;
         }
+        
     } //end for
 
     generateDialogueListeners(charArray, lineArray);
@@ -487,11 +488,17 @@ function generateFlexListeners(sprites, lineArray) {
         for(let i = 0; i < sprites.length; i++) {
             if(sprites[i][SPRITE_ID] == selectedSpriteId) {
                 let selectedObject = document.getElementById(`nameandsprite_${i}`);
+                let selectedImg = document.querySelector(`img[alt="spriteimg_${i}"]`);
                 selectedObject.classList.remove("unselectedSprite");
                 selectedObject.classList.add("selectedSprite");
                 selectedSpriteIndex = i;
                 generateTopLine(lineArray[currentLine], lineArray);
                 updateDialogueLine(lineArray, currentLine);
+                selectedImg.addEventListener('load', function() {
+                    selectedImg.scrollIntoView({ behavior: 'instant', inline: 'center' });
+                    let topBar = document.getElementById("topBar");
+                    topBar.scrollIntoView({ behavior: 'instant', inline: 'center' });
+                });
                 break;
             }
         }//end for
@@ -665,7 +672,7 @@ function generateTopLine(currArray, lineArray) {
         }
     })
 
-    let header = document.getElementById("header");
+    let header = document.getElementById("header-container");
     header.style.display = "none";
     let assetForm = document.getElementById("assetForm");
     assetForm.style.display = "none";
@@ -790,5 +797,8 @@ function generateCopyListener(lineArray) {
         } //end for
         copyHere.innerHTML = "COPIED!";
         navigator.clipboard.writeText(copyString);
+        setTimeout(function() {
+            copyHere.innerHTML = "Copy";
+        }, 1000);
     });
 }
