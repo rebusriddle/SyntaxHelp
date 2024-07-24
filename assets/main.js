@@ -163,7 +163,7 @@ function parseLines(lines){
             validLineIndex++;
             continue;
         }
-        let currLine = allLines[i].split(":");
+        let currLine = allLines[i].split(/:(.+)/).slice(0, 2);
         //if the length of currLine < 2, that means currLine does not follow the format NAME: DIALOGUE
         if(currLine.length < 2) {
             continue;
